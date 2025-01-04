@@ -84,11 +84,21 @@ with st.echo():
 # Compare accuracy
 st.subheader("Compare Accuracy")
 with st.echo():
-    dt_accuracy = accuracy_score(y_test, dt_predictions)
-    rf_accuracy = accuracy_score(y_test, rf_predictions)
+    # Debug shapes and missing values
+    st.write(f"y_test shape: {y_test.shape}")
+    st.write(f"Decision Tree Predictions shape: {dt_predictions.shape}")
+    st.write(f"Missing values in y_test: {pd.isnull(y_test).sum()}")
 
-    st.write(f"Decision Tree Accuracy: {dt_accuracy:.2f}")
-    st.write(f"Random Forest Accuracy: {rf_accuracy:.2f}")
+    # Ensure y_test and predictions are valid
+    if len(y_test) == 0 or len(dt_predictions) == 0 or pd.isnull(y_test).any():
+        st.error("y_test or predictions contain invalid values or are empty.")
+    else:
+        dt_accuracy = accuracy_score(y_test, dt_predictions)
+        rf_accuracy = accuracy_score(y_test, rf_predictions)
+
+        st.write(f"Decision Tree Accuracy: {dt_accuracy:.2f}")
+        st.write(f"Random Forest Accuracy: {rf_accuracy:.2f}")
+
 
 # Performance matrix
 st.subheader("Performance Matrix")
