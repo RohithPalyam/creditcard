@@ -90,7 +90,7 @@ with st.echo():
     st.write(f"Missing values in y_test: {pd.isnull(y_test).sum()}")
 
     # Ensure y_test and predictions are valid
-    if len(y_test) == 0 or len(dt_predictions) == 0 or pd.isnull(y_test).any():
+    if len(y_test) == 0 or len(dt_predictions) == 0 or pd.isnull(y_test).any() or pd.isnull(dt_predictions).any():
         st.error("y_test or predictions contain invalid values or are empty.")
     else:
         dt_accuracy = accuracy_score(y_test, dt_predictions)
@@ -103,12 +103,16 @@ with st.echo():
 # Performance matrix
 st.subheader("Performance Matrix")
 with st.echo():
-    dt_report = classification_report(y_test, dt_predictions)
-    rf_report = classification_report(y_test, rf_predictions)
-    dt_conf_matrix = confusion_matrix(y_test, dt_predictions)
-    rf_conf_matrix = confusion_matrix(y_test, rf_predictions)
+    # Check if y_test and predictions have no missing or invalid values
+    if pd.isnull(y_test).any() or pd.isnull(dt_predictions).any() or pd.isnull(rf_predictions).any():
+        st.error("One or more of the input data contain invalid values (NaNs).")
+    else:
+        dt_report = classification_report(y_test, dt_predictions)
+        rf_report = classification_report(y_test, rf_predictions)
+        dt_conf_matrix = confusion_matrix(y_test, dt_predictions)
+        rf_conf_matrix = confusion_matrix(y_test, rf_predictions)
 
-    st.write("Decision Tree Performance:\n", dt_report)
-    st.write("Random Forest Performance:\n", rf_report)
-    st.write("Decision Tree Confusion Matrix:\n", dt_conf_matrix)
-    st.write("Random Forest Confusion Matrix:\n", rf_conf_matrix)
+        st.write("Decision Tree Performance:\n", dt_report)
+        st.write("Random Forest Performance:\n", rf_report)
+        st.write("Decision Tree Confusion Matrix:\n", dt_conf_matrix)
+        st.write("Random Forest Confusion Matrix:\n", rf_conf_matrix)
