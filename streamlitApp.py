@@ -7,7 +7,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from streamlit_option_menu import option_menu
-
+global data
 # Streamlit app setup
 st.title("Credit Card Fraud Detection Analysis")
 
