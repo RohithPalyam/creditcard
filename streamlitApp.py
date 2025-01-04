@@ -7,9 +7,78 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from streamlit_option_menu import option_menu
-global data
+
+class FraudDetectionApp:
+    def __init__(self):
+        self.data = None
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
+        self.decision_tree = None
+        self.random_forest = None
+
+    def load_data(self):
+        self.data = pd.read_csv('creditcard.csv.crdownload')
+        return self.data
+
+    def analyze_missing_values(self):
+        return self.data.isnull().sum()
+
+    def calculate_statistics(self):
+        genuine_count = self.data[self.data['Class'] == 0].shape[0]
+        fraud_count = self.data[self.data['Class'] == 1].shape[0]
+        total_transactions = self.data.shape[0]
+        fraud_percentage = (fraud_count / total_transactions) * 100
+        return genuine_count, fraud_count, fraud_percentage
+
+    def visualize_transactions(self, genuine_count, fraud_count):
+        fig, ax = plt.subplots()
+        ax.bar(['Genuine', 'Fraud'], [genuine_count, fraud_count], color=['blue', 'red'])
+        ax.set_title('Transaction Counts')
+        ax.set_ylabel('Count')
+        return fig
+
+    def normalize_amount(self):
+        scaler = StandardScaler()
+        self.data['NormalizedAmount'] = scaler.fit_transform(self.data['Amount'].values.reshape(-1, 1))
+        self.data = self.data.drop(['Amount'], axis=1)
+        return self.data
+
+    def split_data(self):
+        X = self.data.drop('Class', axis=1)
+        y = self.data['Class']
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    def train_models(self):
+        # Decision Tree
+        self.decision_tree = DecisionTreeClassifier(random_state=42)
+        self.decision_tree.fit(self.X_train, self.y_train)
+
+        # Random Forest
+        self.random_forest = RandomForestClassifier(random_state=42)
+        self.random_forest.fit(self.X_train, self.y_train)
+
+    def get_predictions(self):
+        dt_predictions = self.decision_tree.predict(self.X_test)
+        rf_predictions = self.random_forest.predict(self.X_test)
+        return dt_predictions, rf_predictions
+
+    def calculate_accuracy(self, dt_predictions, rf_predictions):
+        dt_accuracy = accuracy_score(self.y_test, dt_predictions)
+        rf_accuracy = accuracy_score(self.y_test, rf_predictions)
+        return dt_accuracy, rf_accuracy
+
+    def performance_matrix(self, dt_predictions, rf_predictions):
+        dt_report = classification_report(self.y_test, dt_predictions)
+        rf_report = classification_report(self.y_test, rf_predictions)
+        dt_conf_matrix = confusion_matrix(self.y_test, dt_predictions)
+        rf_conf_matrix = confusion_matrix(self.y_test, rf_predictions)
+        return dt_report, rf_report, dt_conf_matrix, rf_conf_matrix
+
 # Streamlit app setup
 st.title("Credit Card Fraud Detection Analysis")
+app = FraudDetectionApp()
 
 # Option menu for tasks
 with st.sidebar:
@@ -33,23 +102,20 @@ with st.sidebar:
 # Task 1: Load the dataset
 if selected == "Load Dataset":
     with st.echo():
-        data = pd.read_csv('creditcard.csv.crdownload')
+        data = app.load_data()
     st.write("Dataset loaded successfully.")
     st.write(data.head())
 
 # Task 2: Perform missing value analysis
 if selected == "Missing Value Analysis":
     with st.echo():
-        missing_values = data.isnull().sum()
+        missing_values = app.analyze_missing_values()
     st.write("Missing values per column:", missing_values)
 
 # Task 3: Calculate genuine and fraud transactions
 if selected == "Transaction Statistics":
     with st.echo():
-        genuine_count = data[data['Class'] == 0].shape[0]
-        fraud_count = data[data['Class'] == 1].shape[0]
-        total_transactions = data.shape[0]
-        fraud_percentage = (fraud_count / total_transactions) * 100
+        genuine_count, fraud_count, fraud_percentage = app.calculate_statistics()
 
     st.write(f"Number of genuine transactions: {genuine_count}")
     st.write(f"Number of fraud transactions: {fraud_count}")
@@ -58,64 +124,46 @@ if selected == "Transaction Statistics":
 # Task 4: Visualize the genuine and fraudulent transactions
 if selected == "Visualization":
     with st.echo():
-        fig, ax = plt.subplots()
-        ax.bar(['Genuine', 'Fraud'], [genuine_count, fraud_count], color=['blue', 'red'])
-        ax.set_title('Transaction Counts')
-        ax.set_ylabel('Count')
+        fig = app.visualize_transactions(genuine_count, fraud_count)
     st.pyplot(fig)
 
 # Task 5: Normalize the 'Amount' column
 if selected == "Normalize Amount":
     with st.echo():
-        scaler = StandardScaler()
-        data['NormalizedAmount'] = scaler.fit_transform(data['Amount'].values.reshape(-1, 1))
-        data = data.drop(['Amount'], axis=1)
+        normalized_data = app.normalize_amount()
     st.write("Normalized 'Amount' column and dropped the original.")
-    st.write(data.head())
+    st.write(normalized_data.head())
 
 # Task 6: Split the dataset into train and test sets
 if selected == "Train-Test Split":
     with st.echo():
-        X = data.drop('Class', axis=1)
-        y = data['Class']
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        app.split_data()
     st.write("Dataset split into training and testing sets.")
 
 # Task 7: Train models
 if selected == "Train Models":
     with st.echo():
-        # Decision Tree
-        decision_tree = DecisionTreeClassifier(random_state=42)
-        decision_tree.fit(X_train, y_train)
-
-        # Random Forest
-        random_forest = RandomForestClassifier(random_state=42)
-        random_forest.fit(X_train, y_train)
+        app.train_models()
     st.write("Models trained successfully.")
 
 # Task 8: Compare predictions
 if selected == "Compare Predictions":
     with st.echo():
-        dt_predictions = decision_tree.predict(X_test)
-        rf_predictions = random_forest.predict(X_test)
+        dt_predictions, rf_predictions = app.get_predictions()
     st.write("Decision Tree Predictions:", dt_predictions[:10])
     st.write("Random Forest Predictions:", rf_predictions[:10])
 
 # Task 9: Compare accuracy
 if selected == "Compare Accuracy":
     with st.echo():
-        dt_accuracy = accuracy_score(y_test, dt_predictions)
-        rf_accuracy = accuracy_score(y_test, rf_predictions)
+        dt_accuracy, rf_accuracy = app.calculate_accuracy(dt_predictions, rf_predictions)
     st.write(f"Decision Tree Accuracy: {dt_accuracy:.2f}")
     st.write(f"Random Forest Accuracy: {rf_accuracy:.2f}")
 
 # Task 10: Performance matrix comparison
 if selected == "Performance Matrix":
     with st.echo():
-        dt_report = classification_report(y_test, dt_predictions)
-        rf_report = classification_report(y_test, rf_predictions)
-        dt_conf_matrix = confusion_matrix(y_test, dt_predictions)
-        rf_conf_matrix = confusion_matrix(y_test, rf_predictions)
+        dt_report, rf_report, dt_conf_matrix, rf_conf_matrix = app.performance_matrix(dt_predictions, rf_predictions)
     st.write("Decision Tree Performance:\n", dt_report)
     st.write("Random Forest Performance:\n", rf_report)
     st.write("Decision Tree Confusion Matrix:\n", dt_conf_matrix)
