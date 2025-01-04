@@ -20,7 +20,7 @@ class FraudDetectionApp:
 
     def load_data(self, file):
         try:
-            self.data = pd.read_csv(file)
+            self.data = pd.read_csv("creditcard.csv.crdownload")
             st.write("Dataset loaded successfully!")
             return self.data
         except Exception as e:
@@ -105,11 +105,7 @@ with st.sidebar:
 
 # Task 1: Load the dataset
 if selected == "Load Dataset":
-    uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
-    if uploaded_file:
-        data = app.load_data(uploaded_file)
-        if data is not None:
-            st.write(data.head())
+    data = app.load_data(uploaded_file)
 
 # Task 2: Perform missing value analysis
 if selected == "Missing Value Analysis" and app.data is not None:
