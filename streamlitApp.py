@@ -18,7 +18,7 @@ class FraudDetectionApp:
         self.decision_tree = None
         self.random_forest = None
 
-    def load_data(self, file):
+    def load_data(self):
         try:
             self.data = pd.read_csv("creditcard.csv.crdownload")
             st.write("Dataset loaded successfully!")
@@ -105,7 +105,7 @@ with st.sidebar:
 
 # Task 1: Load the dataset
 if selected == "Load Dataset":
-    data = app.load_data(uploaded_file)
+    data = app.load_data()
 
 # Task 2: Perform missing value analysis
 if selected == "Missing Value Analysis" and app.data is not None:
