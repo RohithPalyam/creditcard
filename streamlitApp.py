@@ -10,13 +10,7 @@ from streamlit_option_menu import option_menu
 
 class FraudDetectionApp:
     def __init__(self):
-        self.data = None
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
-        self.decision_tree = None
-        self.random_forest = None
+        pass
 
     def load_data(self):
         with st.echo():
